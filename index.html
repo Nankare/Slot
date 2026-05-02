@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clover Pit Style Slot</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101418;
+      --panel: #1b2229;
+      --panel-2: #222b33;
+      --text: #f5f7f8;
+      --muted: #aab6bf;
+      --line: #34404a;
+      --gold: #f2c14e;
+      --green: #46d39a;
+      --red: #ff6b6b;
+      --blue: #5aa9e6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(70, 211, 154, 0.18), transparent 28rem),
+        radial-gradient(circle at 86% 82%, rgba(90, 169, 230, 0.14), transparent 24rem),
+        linear-gradient(135deg, #101418 0%, #172027 52%, #11161b 100%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .fullscreen {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 10;
+      width: 44px;
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(34, 43, 51, 0.92);
+      color: var(--text);
+      font-size: 20px;
+      line-height: 1;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+    }
+
+    .fullscreen:hover {
+      border-color: var(--blue);
+    }
+
+    main {
+      width: min(94vw, 720px);
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(27, 34, 41, 0.94);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 7vw, 42px);
+      line-height: 1;
+      letter-spacing: 0;
+      text-align: center;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      text-align: center;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .machine {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      column-gap: 8px;
+      row-gap: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0f1418;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 2px solid #41505c;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f8fafb, #dfe5e9);
+      color: #11161b;
+      font-size: clamp(28px, 8vw, 58px);
+      line-height: 1;
+      box-shadow: inset 0 -8px 20px rgba(17, 22, 27, 0.12);
+      transition: transform 140ms ease, filter 140ms ease, border-color 140ms ease;
+    }
+
+    .cell[data-row="0"] {
+      border-bottom-width: 1px;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .cell[data-row="1"] {
+      border-top-width: 1px;
+      border-bottom-width: 1px;
+      border-radius: 0;
+    }
+
+    .cell[data-row="2"] {
+      border-top-width: 1px;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .cell.spinning {
+      transform: translateY(-3px) scale(1.02);
+      filter: blur(1px);
+    }
+
+    .cell.hit {
+      border-color: var(--gold);
+      box-shadow:
+        inset 0 -8px 20px rgba(17, 22, 27, 0.12),
+        0 0 0 3px rgba(242, 193, 78, 0.22);
+    }
+
+    .message {
+      min-height: 34px;
+      margin: 14px 0;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .message.win {
+      color: var(--green);
+    }
+
+    .message.lose {
+      color: var(--red);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 44px 1fr 44px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      color: #11161b;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .step {
+      background: #dfe5e9;
+      font-size: 24px;
+    }
+
+    .spin {
+      background: linear-gradient(180deg, #ffd96d, var(--gold));
+      box-shadow: 0 10px 24px rgba(242, 193, 78, 0.22);
+    }
+
+    .reset {
+      width: 100%;
+      margin-top: 10px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .paytable {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .paytable span {
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    @media (max-width: 560px) {
+      main {
+        padding: 14px;
+      }
+
+      .machine {
+        column-gap: 5px;
+        row-gap: 0;
+        padding: 8px;
+      }
+
+      .paytable {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="fullscreen" id="fullscreen" type="button" aria-label="フルスクリーンにする" title="フルスクリーン">⛶</button>
+
+  <main>
+    <h1>Clover Pit</h1>
+
+    <section class="stats" aria-label="ゲーム状況">
+      <div class="stat">
+        <span class="label">COINS</span>
+        <span class="value" id="coins">100</span>
+      </div>
+      <div class="stat">
+        <span class="label">BET</span>
+        <span class="value" id="bet">10</span>
+      </div>
+      <div class="stat">
+        <span class="label">WIN</span>
+        <span class="value" id="lastWin">0</span>
+      </div>
+    </section>
+
+    <section class="machine" id="machine" aria-label="3行5列のスロット盤面"></section>
+
+    <p class="message" id="message">3マス連続一致でWIN。5マス一致は大当たり。</p>
+
+    <section class="controls" aria-label="操作">
+      <button class="step" id="betDown" type="button" aria-label="ベットを下げる">−</button>
+      <button class="spin" id="spin" type="button">SPIN</button>
+      <button class="step" id="betUp" type="button" aria-label="ベットを上げる">＋</button>
+    </section>
+
+    <button class="reset" id="reset" type="button">RESET</button>
+
+    <section class="paytable" aria-label="配当">
+      <span>3マス一致 ×3</span>
+      <span>横5一致 ×35</span>
+      <span>斜め5一致 ×50</span>
+    </section>
+  </main>
+
+  <script>
+    const rows = 3;
+    const cols = 5;
+    const symbols = ["♣️", "🍒", "🍋", "🔔", "⭐", "💎", "7️⃣"];
+    const machineEl = document.querySelector("#machine");
+    const coinsEl = document.querySelector("#coins");
+    const betEl = document.querySelector("#bet");
+    const lastWinEl = document.querySelector("#lastWin");
+    const messageEl = document.querySelector("#message");
+    const spinButton = document.querySelector("#spin");
+    const betDownButton = document.querySelector("#betDown");
+    const betUpButton = document.querySelector("#betUp");
+    const resetButton = document.querySelector("#reset");
+    const fullscreenButton = document.querySelector("#fullscreen");
+
+    let coins = 100;
+    let bet = 10;
+    let spinning = false;
+    let board = [];
+
+    const lines = buildLines();
+
+    function buildLines() {
+      const generated = [];
+
+      for (let row = 0; row < rows; row += 1) {
+        generated.push({
+          name: `${row + 1}段目 横5`,
+          cells: Array.from({ length: cols }, (_, col) => [row, col]),
+          multiplier: 35,
+          size: 5,
+        });
+
+        for (let col = 0; col <= cols - 3; col += 1) {
+          generated.push({
+            name: `${row + 1}段目 横3`,
+            cells: [[row, col], [row, col + 1], [row, col + 2]],
+            multiplier: 3,
+            size: 3,
+          });
+        }
+      }
+
+      generated.push(
+        {
+          name: "左上から右下の斜め5",
+          cells: [[0, 0], [1, 1], [2, 2], [1, 3], [0, 4]],
+          multiplier: 50,
+          size: 5,
+        },
+        {
+          name: "左下から右上の斜め5",
+          cells: [[2, 0], [1, 1], [0, 2], [1, 3], [2, 4]],
+          multiplier: 50,
+          size: 5,
+        }
+      );
+
+      for (let col = 0; col < cols; col += 1) {
+        generated.push({
+          name: `${col + 1}列目 縦3`,
+          cells: [[0, col], [1, col], [2, col]],
+          multiplier: 3,
+          size: 3,
+        });
+      }
+
+      for (let row = 0; row <= rows - 3; row += 1) {
+        for (let col = 0; col <= cols - 3; col += 1) {
+          generated.push({
+            name: `斜め3`,
+            cells: [[row, col], [row + 1, col + 1], [row + 2, col + 2]],
+            multiplier: 3,
+            size: 3,
+          });
+        }
+
+        for (let col = 2; col < cols; col += 1) {
+          generated.push({
+            name: `斜め3`,
+            cells: [[row, col], [row + 1, col - 1], [row + 2, col - 2]],
+            multiplier: 3,
+            size: 3,
+          });
+        }
+      }
+
+      return generated;
+    }
+
+    function createCells() {
+      machineEl.innerHTML = "";
+      for (let row = 0; row < rows; row += 1) {
+        for (let col = 0; col < cols; col += 1) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+          cell.textContent = symbols[(row * cols + col) % symbols.length];
+          machineEl.appendChild(cell);
+        }
+      }
+    }
+
+    function getCell(row, col) {
+      return machineEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    }
+
+    function render() {
+      coinsEl.textContent = coins;
+      betEl.textContent = bet;
+      spinButton.disabled = spinning || coins < bet;
+      betDownButton.disabled = spinning || bet <= 5;
+      betUpButton.disabled = spinning || bet >= 50 || bet + 5 > coins;
+    }
+
+    function randomSymbol() {
+      return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function weightedSymbol(featuredSymbol) {
+      if (Math.random() < 0.36) return featuredSymbol;
+      return randomSymbol();
+    }
+
+    function buildBoard() {
+      const featuredSymbol = randomSymbol();
+      return Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => weightedSymbol(featuredSymbol))
+      );
+    }
+
+    function findWins(nextBoard) {
+      return lines.filter((line) => {
+        const first = nextBoard[line.cells[0][0]][line.cells[0][1]];
+        return line.cells.every(([row, col]) => nextBoard[row][col] === first);
+      });
+    }
+
+    function setMessage(text, type = "") {
+      messageEl.textContent = text;
+      messageEl.className = `message ${type}`.trim();
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll(".cell.hit").forEach((cell) => {
+        cell.classList.remove("hit");
+      });
+    }
+
+    function highlightWins(wins) {
+      wins.forEach((win) => {
+        win.cells.forEach(([row, col]) => {
+          getCell(row, col).classList.add("hit");
+        });
+      });
+    }
+
+    async function spin() {
+      if (spinning || coins < bet) return;
+
+      spinning = true;
+      coins -= bet;
+      lastWinEl.textContent = "0";
+      clearHighlights();
+      setMessage("回転中...");
+      render();
+
+      const cells = [...document.querySelectorAll(".cell")];
+      cells.forEach((cell) => cell.classList.add("spinning"));
+
+      const nextBoard = buildBoard();
+
+      for (let col = 0; col < cols; col += 1) {
+        await new Promise((resolve) => {
+          let ticks = 0;
+          const timer = setInterval(() => {
+            for (let row = 0; row < rows; row += 1) {
+              getCell(row, col).textContent = randomSymbol();
+            }
+            ticks += 1;
+            if (ticks >= 8 + col * 4) {
+              clearInterval(timer);
+              for (let row = 0; row < rows; row += 1) {
+                const cell = getCell(row, col);
+                cell.textContent = nextBoard[row][col];
+                cell.classList.remove("spinning");
+              }
+              resolve();
+            }
+          }, 55);
+        });
+      }
+
+      board = nextBoard;
+      const wins = findWins(board);
+      const totalMultiplier = wins.reduce((sum, win) => sum + win.multiplier, 0);
+      const payout = bet * totalMultiplier;
+      coins += payout;
+      lastWinEl.textContent = payout;
+
+      if (wins.length > 0) {
+        highlightWins(wins);
+        const bigWins = wins.filter((win) => win.size === 5);
+        const lineText = bigWins.length > 0 ? "5マス大当たり" : "3マス一致";
+        setMessage(`WIN! ${lineText} ${wins.length}ラインで ${payout} コイン獲得`, "win");
+      } else if (coins < bet) {
+        setMessage("コイン切れ。RESETで再挑戦。", "lose");
+      } else {
+        setMessage("揃わず。次で光らせましょう。", "lose");
+      }
+
+      spinning = false;
+      render();
+    }
+
+    betDownButton.addEventListener("click", () => {
+      bet = Math.max(5, bet - 5);
+      render();
+    });
+
+    betUpButton.addEventListener("click", () => {
+      bet = Math.min(50, bet + 5, coins);
+      render();
+    });
+
+    spinButton.addEventListener("click", spin);
+
+    fullscreenButton.addEventListener("click", async () => {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      const isFullscreen = Boolean(document.fullscreenElement);
+      fullscreenButton.textContent = isFullscreen ? "×" : "⛶";
+      fullscreenButton.setAttribute(
+        "aria-label",
+        isFullscreen ? "フルスクリーンを終了する" : "フルスクリーンにする"
+      );
+      fullscreenButton.title = isFullscreen ? "フルスクリーン終了" : "フルスクリーン";
+    });
+
+    resetButton.addEventListener("click", () => {
+      coins = 100;
+      bet = 10;
+      board = [];
+      lastWinEl.textContent = "0";
+      setMessage("3マス連続一致でWIN。5マス一致は大当たり。");
+      clearHighlights();
+      document.querySelectorAll(".cell").forEach((cell, index) => {
+        cell.textContent = symbols[index % symbols.length];
+        cell.classList.remove("spinning");
+      });
+      render();
+    });
+
+    createCells();
+    render();
+  </script>
+</body>
+</html>
